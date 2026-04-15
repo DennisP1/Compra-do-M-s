@@ -2,77 +2,80 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compra do Mês - Layout Unificado</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lista de Compras Mobile</title>
     <style>
+        * { box-sizing: border-box; }
+        
         body { 
-            background-color: #e0e0e0; 
+            background-color: #f4f4f4; 
             font-family: 'Courier New', Courier, monospace; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            padding: 20px; 
+            padding: 10px;
+            margin: 0;
         }
         
-        /* Barra de Adicionar com estilo de Recibo */
+        /* Barra de Adicionar - Estilo Mobile */
         .controles { 
             background: #fff; 
-            width: 480px; 
-            padding: 20px 25px; 
+            width: 100%;
+            max-width: 500px;
+            padding: 15px; 
             border: 1px solid #ccc;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             margin-bottom: 10px; 
             display: flex; 
-            flex-wrap: wrap; 
-            gap: 10px; 
-            justify-content: space-between;
-            border-bottom: 3px dashed #ccc; /* Efeito de serrilhado */
+            flex-direction: column;
+            gap: 10px;
+            border-bottom: 4px dashed #ccc;
         }
 
-        .controles input, .controles select { 
-            background: transparent;
+        .input-group { display: flex; gap: 8px; }
+
+        input, select { 
+            background: #fff;
             border: 1px solid #000;
-            padding: 8px;
+            padding: 12px; /* Maior para o dedo */
+            font-size: 16px; /* Evita zoom automático no iOS */
             font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
-            outline: none;
         }
-
-        .controles input:focus { background: #fffcf0; }
 
         .btn-add { 
             background: #000; 
             color: #fff; 
             border: none; 
-            padding: 10px; 
+            padding: 15px; 
             cursor: pointer; 
             font-weight: bold; 
-            width: 100%;
-            margin-top: 5px;
+            font-size: 16px;
             font-family: 'Courier New', Courier, monospace;
-            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         /* Estilo da Nota */
         .recibo { 
             background-color: #fff; 
-            width: 480px; 
-            padding: 25px; 
-            box-shadow: 0 0 15px rgba(0,0,0,0.2); 
+            width: 100%;
+            max-width: 500px;
+            padding: 20px; 
             border: 1px solid #ccc; 
+            min-height: 300px;
         }
 
         .header { 
             text-align: center; 
             border-bottom: 2px dashed #000; 
-            padding-bottom: 15px; 
+            padding-bottom: 10px; 
             margin-bottom: 15px; 
         }
         
         .categoria-header { 
-            background: #000; 
+            background: #333; 
             color: #fff;
-            padding: 3px 10px; 
+            padding: 5px 10px; 
             font-weight: bold; 
             font-size: 0.8rem; 
             margin-top: 15px; 
@@ -80,92 +83,88 @@
         }
         
         .tabela-itens { width: 100%; border-collapse: collapse; }
-        .item-linha { cursor: move; border-bottom: 1px solid #eee; }
         
-        /* Itens Comprados */
+        .item-linha { 
+            border-bottom: 1px solid #eee; 
+            touch-action: none; /* Necessário para drag and drop em mobile */
+        }
+        
         .item-linha.comprado { color: #aaa; }
         .item-linha.comprado .desc-celula { text-decoration: line-through; }
         
-        .item-linha.dragging { opacity: 0.5; background: #f0f0f0; }
-        
-        .acoes-print { width: 110px; text-align: center; }
-        .btn-acao { cursor: pointer; border: none; background: none; font-size: 1.2rem; padding: 5px; font-family: sans-serif; }
-        .btn-check { color: #28a745; font-weight: bold; }
-        
+        /* Botões de Ação Mobile */
+        .acoes-print { 
+            display: flex; 
+            gap: 5px; 
+            padding: 10px 0;
+            justify-content: center;
+        }
+
+        .btn-acao { 
+            min-width: 40px; 
+            min-height: 40px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background: #f9f9f9;
+            font-size: 1.2rem;
+        }
+
         .totais { 
             margin-top: 20px; 
             border-top: 2px dashed #000; 
             padding-top: 15px; 
             font-weight: bold; 
-            font-size: 1.3rem; 
+            font-size: 1.2rem; 
             display: flex; 
             justify-content: space-between; 
         }
 
-        /* Histórico */
-        .historico-secao { width: 480px; margin-top: 30px; }
-        .historico-titulo { border-bottom: 1px solid #000; font-weight: bold; margin-bottom: 10px; text-align: center; }
-        .historico-card { 
-            background: #fff; 
-            padding: 10px; 
-            border: 1px solid #ccc; 
-            display: flex; 
-            justify-content: space-between; 
-            margin-bottom: 5px; 
-            font-size: 0.8rem;
+        /* Botões Fixos de Rodapé no Celular */
+        .botoes-fixos {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
         }
 
-        .btn-finalizar { 
-            background: #fff; 
-            color: #000; 
-            border: 2px solid #000; 
-            padding: 12px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            margin-top: 15px; 
-            width: 532px; 
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        .btn-imprimir { 
-            margin-top: 10px; 
-            width: 532px; 
-            padding: 15px; 
-            background: #000; 
-            color: #fff; 
-            border: none; 
-            cursor: pointer; 
-            font-weight: bold;
-            font-family: 'Courier New', Courier, monospace;
-        }
+        .btn-finalizar { background: #fff; color: #000; border: 2px solid #000; padding: 15px; font-weight: bold; }
+        .btn-imprimir { background: #000; color: #fff; border: none; padding: 15px; font-weight: bold; }
 
         @media print {
-            .controles, .btn-imprimir, .acoes-print, .btn-finalizar, .historico-secao { display: none !important; }
-            body { background: white; padding: 0; }
-            .recibo { box-shadow: none; border: none; width: 100%; }
+            .controles, .botoes-fixos, .acoes-print { display: none !important; }
+            .recibo { width: 100%; box-shadow: none; border: none; }
         }
     </style>
 </head>
 <body>
 
     <div class="controles">
-        <input type="number" id="qtd" style="width: 15%" value="1" title="Quantidade">
-        <input type="text" id="desc" style="width: 45%" placeholder="DESCRIÇÃO">
-        <input type="number" id="valor" style="width: 25%" placeholder="VALOR" step="0.01">
-        <select id="categoria" style="width: 100%; margin-top: 5px;">
-            <option value="GERAL">-- CATEGORIA --</option>
-            <option value="LIMPEZA">LIMPEZA</option>
-            <option value="AÇOUGUE">AÇOUGUE</option>
-            <option value="HORTIFRUTI">HORTIFRUTI</option>
-            <option value="PADARIA">PADARIA</option>
-            <option value="BEBIDAS">BEBIDAS</option>
-        </select>
-        <button class="btn-add" onclick="adicionarItem()">INSERIR ITEM</button>
+        <div class="input-group">
+            <input type="number" id="qtd" style="width: 30%" value="1" inputmode="numeric">
+            <input type="text" id="desc" style="width: 70%" placeholder="ITEM/PRODUTO">
+        </div>
+        <div class="input-group">
+            <input type="number" id="valor" style="width: 40%" placeholder="R$ UN." step="0.01" inputmode="decimal">
+            <select id="categoria" style="width: 60%">
+                <option value="GERAL">CATEGORIA</option>
+                <option value="LIMPEZA">LIMPEZA</option>
+                <option value="AÇOUGUE">AÇOUGUE</option>
+                <option value="HORTIFRUTI">HORTIFRUTI</option>
+                <option value="PADARIA">PADARIA</option>
+                <option value="BEBIDAS">BEBIDAS</option>
+            </select>
+        </div>
+        <button class="btn-add" onclick="adicionarItem()">+ ADICIONAR NA LISTA</button>
     </div>
 
     <div class="recibo">
         <div class="header">
-            <h2 style="margin: 0; letter-spacing: 4px;">RECIBO DE COMPRAS</h2>
+            <h2 style="margin: 0;">COMPRA DO MÊS</h2>
             <small id="data-atual"></small>
         </div>
 
@@ -177,23 +176,15 @@
         </div>
     </div>
 
-    <button class="btn-finalizar" onclick="finalizarCompra()">FECHAR MÊS E ARQUIVAR</button>
-    <button class="btn-imprimir" onclick="window.print()">IMPRIMIR CUPOM</button>
-
-    <div class="historico-secao">
-        <div class="historico-titulo">HISTÓRICO ANTERIOR</div>
-        <div id="lista-historico"></div>
+    <div class="botoes-fixos">
+        <button class="btn-finalizar" onclick="finalizarCompra()">FECHAR MÊS / ARQUIVAR</button>
+        <button class="btn-imprimir" onclick="window.print()">IMPRIMIR CUPOM</button>
     </div>
 
     <script>
-        document.getElementById('data-atual').innerText = new Date().toLocaleDateString();
+        document.getElementById('data-atual').innerText = new Date().toLocaleDateString('pt-BR');
 
         let bancoDados = JSON.parse(localStorage.getItem('compra_ativa_db')) || [];
-        let historico = JSON.parse(localStorage.getItem('compra_historico_db')) || [];
-        const containerPrincipal = document.getElementById('lista-agrupada');
-
-        renderizar();
-        renderizarHistorico();
 
         function adicionarItem() {
             const q = document.getElementById('qtd');
@@ -213,65 +204,25 @@
             };
             
             bancoDados.push(novoItem);
-            salvar();
-            renderizar();
-            d.value = ""; v.value = ""; q.value = "1"; d.focus();
+            salvarERenderizar();
+            d.value = ""; v.value = ""; q.value = "1";
+            d.focus();
         }
 
-        function remover(id) {
-            bancoDados = bancoDados.filter(i => i.id !== id);
-            salvar();
-            renderizar();
-        }
-
-        function toggleCheck(id) {
-            const item = bancoDados.find(i => i.id === id);
-            if (item) item.comprado = !item.comprado;
-            salvar();
-            renderizar();
-        }
-
-        function editar(id) {
-            const item = bancoDados.find(i => i.id === id);
-            if (item) {
-                document.getElementById('qtd').value = item.qtd;
-                document.getElementById('desc').value = item.desc;
-                document.getElementById('valor').value = item.valorUn;
-                document.getElementById('categoria').value = item.cat;
-                remover(id);
-                document.getElementById('desc').focus();
-            }
-        }
-
-        function finalizarCompra() {
-            if (bancoDados.length === 0) return alert("Lista vazia!");
-            if (confirm("Deseja arquivar esta compra?")) {
-                const totalFinal = bancoDados.reduce((acc, item) => acc + (item.qtd * item.valorUn), 0);
-                const registro = {
-                    data: new Date().toLocaleString('pt-BR'),
-                    total: totalFinal
-                };
-                historico.unshift(registro);
-                bancoDados = [];
-                localStorage.setItem('compra_historico_db', JSON.stringify(historico));
-                salvar();
-                renderizar();
-                renderizarHistorico();
-            }
-        }
-
-        function salvar() {
+        function salvarERenderizar() {
             localStorage.setItem('compra_ativa_db', JSON.stringify(bancoDados));
+            renderizar();
         }
 
         function renderizar() {
-            containerPrincipal.innerHTML = "";
+            const container = document.getElementById('lista-agrupada');
+            container.innerHTML = "";
             let totalGeral = 0;
             const categoriasUsadas = [...new Set(bancoDados.map(i => i.cat))];
             
             categoriasUsadas.forEach(cat => {
-                const sessaoCat = document.createElement('div');
-                sessaoCat.innerHTML = `<div class="categoria-header">${cat}</div>`;
+                const sessao = document.createElement('div');
+                sessao.innerHTML = `<div class="categoria-header">${cat}</div>`;
                 const tabela = document.createElement('table');
                 tabela.className = "tabela-itens";
                 
@@ -280,62 +231,47 @@
                     totalGeral += subtotal;
                     const tr = document.createElement('tr');
                     tr.className = `item-linha ${item.comprado ? 'comprado' : ''}`;
-                    tr.draggable = true;
-                    tr.dataset.id = item.id;
                     
                     tr.innerHTML = `
+                        <td class="desc-celula" style="padding: 10px 0;">
+                            <strong>${item.qtd}x</strong> ${item.desc}<br>
+                            <small>R$ ${item.valorUn.toFixed(2)} | Sub: R$ ${subtotal.toFixed(2)}</small>
+                        </td>
                         <td class="acoes-print">
-                            <button class="btn-acao btn-check" onclick="toggleCheck('${item.id}')">${item.comprado ? '↩' : '✓'}</button>
-                            <button class="btn-acao" onclick="editar('${item.id}')" style="color:blue">✎</button>
+                            <button class="btn-acao" onclick="toggleCheck('${item.id}')" style="color:green">✓</button>
                             <button class="btn-acao" onclick="remover('${item.id}')" style="color:red">×</button>
                         </td>
-                        <td style="width:40px; text-align:center">${item.qtd}</td>
-                        <td class="desc-celula">
-                            ${item.desc}<br>
-                            <small>${item.valorUn.toFixed(2)} UN</small>
-                        </td>
-                        <td style="text-align:right">${subtotal.toFixed(2).replace('.', ',')}</td>
                     `;
-                    tr.ondragstart = () => tr.classList.add('dragging');
-                    tr.ondragend = () => { tr.classList.remove('dragging'); reordenar(); };
                     tabela.appendChild(tr);
                 });
-                sessaoCat.appendChild(tabela);
-                containerPrincipal.appendChild(sessaoCat);
+                sessao.appendChild(tabela);
+                container.appendChild(sessao);
             });
             document.getElementById('valor-total-geral').innerText = "R$ " + totalGeral.toFixed(2).replace('.', ',');
         }
 
-        function renderizarHistorico() {
-            const containerH = document.getElementById('lista-historico');
-            containerH.innerHTML = historico.length === 0 ? "---" : "";
-            historico.slice(0, 5).forEach(reg => {
-                const div = document.createElement('div');
-                div.className = "historico-card";
-                div.innerHTML = `<span>${reg.data}</span> <strong>R$ ${reg.total.toFixed(2).replace('.', ',')}</strong>`;
-                containerH.appendChild(div);
-            });
+        function toggleCheck(id) {
+            const item = bancoDados.find(i => i.id === id);
+            if (item) item.comprado = !item.comprado;
+            salvarERenderizar();
         }
 
-        function reordenar() {
-            const linhas = [...document.querySelectorAll('.item-linha')];
-            bancoDados = linhas.map(l => bancoDados.find(i => i.id === l.dataset.id));
-            salvar();
+        function remover(id) {
+            if(confirm("Remover item?")) {
+                bancoDados = bancoDados.filter(i => i.id !== id);
+                salvarERenderizar();
+            }
         }
 
-        document.addEventListener('dragover', e => {
-            e.preventDefault();
-            const dragging = document.querySelector('.dragging');
-            const targetTabela = e.target.closest('.tabela-itens');
-            if (!targetTabela || !dragging) return;
-            const afterElement = [...targetTabela.querySelectorAll('.item-linha:not(.dragging)')].reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = e.clientY - box.top - box.height / 2;
-                return (offset < 0 && offset > closest.offset) ? { offset, element: child } : closest;
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-            if (!afterElement) targetTabela.appendChild(dragging);
-            else targetTabela.insertBefore(dragging, afterElement);
-        });
+        function finalizarCompra() {
+            if (confirm("Arquivar lista e limpar para o próximo mês?")) {
+                bancoDados = [];
+                salvarERenderizar();
+                alert("Mês finalizado com sucesso!");
+            }
+        }
+
+        renderizar();
     </script>
 </body>
 </html>
