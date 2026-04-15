@@ -3,46 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Compra - Pegas v2.0.5</title>
+    <title>Pegas - Lista de Compras</title>
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
         
         body { 
             background-color: #e0e0e0; 
-            font-family: 'Courier New', Courier, monospace; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            padding: 10px;
-            margin: 0;
+            padding: 10px; 
+            margin: 0; 
         }
-        
-        /* Barra de Adicionar Estilo Cupom */
+
         .controles { 
             background: #fff; 
-            width: 100%;
-            max-width: 500px;
+            width: 100%; 
+            max-width: 500px; 
             padding: 20px; 
-            border: 1px solid #ccc;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 1px solid #ccc; 
             margin-bottom: 10px; 
             display: flex; 
-            flex-direction: column;
-            gap: 10px;
-            border-bottom: 5px dashed #ccc;
+            flex-direction: column; 
+            gap: 10px; 
+            border-bottom: 5px dashed #ccc; 
         }
 
         .input-group { display: flex; gap: 8px; }
 
-        input, select { 
-            background: transparent;
-            border: 1px solid #000;
-            padding: 12px;
-            font-size: 16px;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            outline: none;
-            width: 100%;
+        input { 
+            background: transparent; 
+            border: 1px solid #000; 
+            padding: 12px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            outline: none; 
+            width: 100%; 
         }
 
         .btn-add { 
@@ -52,21 +48,19 @@
             padding: 15px; 
             cursor: pointer; 
             font-weight: bold; 
-            font-size: 16px;
-            font-family: 'Courier New', Courier, monospace;
-            letter-spacing: 2px;
+            font-size: 16px; 
+            letter-spacing: 2px; 
             text-transform: uppercase;
         }
 
-        /* Estilo da Nota (Recibo) */
         .recibo { 
             background-color: #fff; 
-            width: 100%;
-            max-width: 500px;
+            width: 100%; 
+            max-width: 500px; 
             padding: 25px; 
             border: 1px solid #ccc; 
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
-            min-height: 400px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2); 
+            min-height: 400px; 
         }
 
         .header { 
@@ -75,40 +69,35 @@
             padding-bottom: 15px; 
             margin-bottom: 15px; 
         }
-        
-        .categoria-header { 
-            background: #000; 
-            color: #fff;
-            padding: 5px 10px; 
-            font-weight: bold; 
-            font-size: 0.8rem; 
-            margin-top: 20px; 
-            text-transform: uppercase; 
-        }
-        
-        .tabela-itens { width: 100%; border-collapse: collapse; }
-        
-        .item-linha { border-bottom: 1px solid #eee; }
-        .item-linha.comprado { color: #aaa; background-color: #fdfdfd; }
-        .item-linha.comprado .desc-principal { text-decoration: line-through; }
-        
-        .acoes-col { 
+
+        .item-linha { 
+            border-bottom: 1px solid #eee; 
             display: flex; 
-            gap: 8px; 
-            padding: 15px 0;
-            justify-content: flex-end;
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 12px 0; 
+        }
+
+        .item-linha.comprado { 
+            color: #aaa; 
+        }
+
+        .item-linha.comprado .texto-item {
+            text-decoration: line-through;
+        }
+
+        .botoes-item {
+            display: flex;
+            gap: 5px;
         }
 
         .btn-acao { 
-            min-width: 44px; 
-            min-height: 44px; 
-            border: 1px solid #000;
-            background: #fff;
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            min-width: 40px; 
+            min-height: 40px; 
+            border: 1px solid #000; 
+            background: #fff; 
+            cursor: pointer; 
+            font-weight: bold;
         }
 
         .totais { 
@@ -121,24 +110,10 @@
             justify-content: space-between; 
         }
 
-        /* Rodapé */
-        .botoes-rodape {
-            width: 100%;
-            max-width: 500px;
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 40px;
-        }
-
-        .btn-imprimir { background: #000; color: #fff; border: none; padding: 15px; font-weight: bold; cursor: pointer; font-family: 'Courier New', Courier, monospace; }
-        .btn-limpar { background: #fff; color: #000; border: 2px solid #000; padding: 15px; font-weight: bold; cursor: pointer; font-family: 'Courier New', Courier, monospace; }
-
-        @media print {
-            .controles, .botoes-rodape, .acoes-col { display: none !important; }
-            body { background: white; padding: 0; }
-            .recibo { width: 100%; box-shadow: none; border: none; max-width: none; }
+        @media print { 
+            .controles, .botoes-item { display: none !important; } 
+            body { background: #fff; }
+            .recibo { box-shadow: none; border: none; }
         }
     </style>
 </head>
@@ -150,149 +125,104 @@
             <input type="text" id="desc" style="width: 75%" placeholder="NOME DO ITEM">
         </div>
         <div class="input-group">
-            <input type="number" id="valor" style="width: 45%" placeholder="R$ UN." step="0.01" inputmode="decimal">
-            <select id="categoria" style="width: 55%">
-                <option value="GERAL">CATEGORIA</option>
-                <option value="LIMPEZA">LIMPEZA</option>
-                <option value="AÇOUGUE">AÇOUGUE</option>
-                <option value="HORTIFRUTI">HORTIFRUTI</option>
-                <option value="PADARIA">PADARIA</option>
-                <option value="BEBIDAS">BEBIDAS</option>
-            </select>
+            <input type="number" id="valor" placeholder="R$ PREÇO UN." step="0.01" inputmode="decimal">
         </div>
         <button class="btn-add" onclick="adicionarItem()">INSERIR NA NOTA</button>
     </div>
 
     <div class="recibo">
         <div class="header">
-            <h2 style="margin: 0; letter-spacing: 4px;">PEGAS - CUPOM</h2>
+            <h2 style="margin: 0; letter-spacing: 2px;">PEGAS - MARKET</h2>
             <small id="data-exibicao"></small>
         </div>
-
-        <div id="lista-agrupada"></div>
-
+        <div id="lista-itens"></div>
         <div class="totais">
             <span>TOTAL:</span>
             <span id="valor-total-geral">R$ 0,00</span>
         </div>
     </div>
 
-    <div class="botoes-rodape">
-        <button class="btn-imprimir" onclick="window.print()">IMPRIMIR CUPOM</button>
-        <button class="btn-limpar" onclick="limparLista()">LIMPAR LISTA ATUAL</button>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDocs, writeBatch } 
-        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // ATENÇÃO: SUBSTITUA OS VALORES ABAIXO PELOS SEUS DO FIREBASE
+        // CONFIGURAÇÃO FIREBASE (Preencha a apiKey e o appId)
         const firebaseConfig = {
-            apiKey: "SUA_API_KEY_AQUI",
-            authDomain: "seu-projeto.firebaseapp.com",
-            projectId: "seu-projeto-id",
-            storageBucket: "seu-projeto.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcde12345"
+            apiKey: "COLE_SUA_API_KEY_AQUI", 
+            authDomain: "lista-de-compras-8474e.firebaseapp.com",
+            databaseURL: "https://lista-de-compras-8474e-default-rtdb.firebaseio.com",
+            projectId: "lista-de-compras-8474e",
+            storageBucket: "lista-de-compras-8474e.appspot.com",
+            messagingSenderId: "812165275822",
+            appId: "COLE_SEU_APP_ID_AQUI"
         };
 
-        // Verifica se o usuário esqueceu de trocar as chaves
-        if (firebaseConfig.projectId.includes("seu-projeto")) {
-            alert("ERRO: Você precisa colar suas chaves do Firebase no código (firebaseConfig)!");
-        }
-
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const colRef = collection(db, "compra_ativa");
+        const db = getDatabase(app);
+        const listaRef = ref(db, 'compras');
 
         document.getElementById('data-exibicao').innerText = new Date().toLocaleDateString('pt-BR');
 
-        window.adicionarItem = async () => {
-            const q = document.getElementById('qtd');
-            const d = document.getElementById('desc');
-            const v = document.getElementById('valor');
-            const c = document.getElementById('categoria');
+        // Adicionar item ao banco
+        window.adicionarItem = function() {
+            const d = document.getElementById('desc').value;
+            const q = document.getElementById('qtd').value;
+            const v = document.getElementById('valor').value;
 
-            if (!d.value.trim()) return alert("Digite o nome do produto!");
+            if (!d) return alert("Por favor, digite o nome do item.");
 
-            try {
-                await addDoc(colRef, {
-                    qtd: parseFloat(q.value) || 1,
-                    desc: d.value.toUpperCase(),
-                    valorUn: parseFloat(v.value) || 0,
-                    cat: c.value,
-                    comprado: false,
-                    timestamp: Date.now()
-                });
-                d.value = ""; v.value = ""; q.value = "1"; d.focus();
-            } catch (err) { 
-                console.error(err);
-                alert("Erro ao salvar! Verifique se as REGRAS do Cloud Firestore estão como 'true'.");
-            }
+            push(listaRef, {
+                desc: d.toUpperCase(),
+                qtd: parseFloat(q) || 1,
+                valor: parseFloat(v) || 0,
+                comprado: false
+            });
+
+            document.getElementById('desc').value = "";
+            document.getElementById('valor').value = "";
+            document.getElementById('desc').focus();
         };
 
-        const qSnapshot = query(colRef, orderBy("timestamp", "asc"));
-        onSnapshot(qSnapshot, (snapshot) => {
-            let itens = [];
-            snapshot.docs.forEach(doc => itens.push({ ...doc.data(), id: doc.id }));
-            renderizar(itens);
-        });
-
-        window.toggleCheck = async (id, status) => {
-            await updateDoc(doc(db, "compra_ativa", id), { comprado: !status });
-        };
-
-        window.remover = async (id) => {
-            if(confirm("Remover este item?")) {
-                await deleteDoc(doc(db, "compra_ativa", id));
-            }
-        };
-
-        window.limparLista = async () => {
-            if(confirm("Deseja apagar todos os itens desta nota?")) {
-                const querySnapshot = await getDocs(colRef);
-                const batch = writeBatch(db);
-                querySnapshot.forEach((doc) => batch.delete(doc.ref));
-                await batch.commit();
-            }
-        };
-
-        function renderizar(dados) {
-            const container = document.getElementById('lista-agrupada');
-            container.innerHTML = "";
+        // Escutar mudanças no banco e atualizar a tela
+        onValue(listaRef, (snapshot) => {
+            const listaDiv = document.getElementById('lista-itens');
+            listaDiv.innerHTML = "";
             let totalGeral = 0;
-            const categorias = [...new Set(dados.map(i => i.cat))];
             
-            categorias.forEach(cat => {
-                const divCat = document.createElement('div');
-                divCat.innerHTML = `<div class="categoria-header">${cat}</div>`;
-                const tabela = document.createElement('table');
-                tabela.className = "tabela-itens";
-                
-                dados.filter(i => i.cat === cat).forEach(item => {
-                    const subtotal = item.qtd * item.valorUn;
-                    totalGeral += subtotal;
-                    const tr = document.createElement('tr');
-                    tr.className = `item-linha ${item.comprado ? 'comprado' : ''}`;
-                    
-                    tr.innerHTML = `
-                        <td style="padding: 15px 0;">
-                            <span class="desc-principal"><strong>${item.qtd}x</strong> ${item.desc}</span><br>
-                            <small>R$ ${item.valorUn.toFixed(2)} | Sub: R$ ${subtotal.toFixed(2)}</small>
-                        </td>
-                        <td class="acoes-col">
-                            <button class="btn-acao" onclick="toggleCheck('${item.id}', ${item.comprado})" style="color: green">✓</button>
-                            <button class="btn-acao" onclick="remover('${item.id}')" style="color: red">×</button>
-                        </td>
-                    `;
-                    tabela.appendChild(tr);
-                });
-                divCat.appendChild(tabela);
-                container.appendChild(divCat);
+            snapshot.forEach((childSnapshot) => {
+                const item = childSnapshot.val();
+                const key = childSnapshot.key;
+                const subtotal = item.qtd * item.valor;
+                totalGeral += subtotal;
+
+                const div = document.createElement('div');
+                div.className = `item-linha ${item.comprado ? 'comprado' : ''}`;
+                div.innerHTML = `
+                    <div class="texto-item">
+                        <strong>${item.qtd}x ${item.desc}</strong><br>
+                        <small>R$ ${subtotal.toFixed(2)}</small>
+                    </div>
+                    <div class="botoes-item">
+                        <button class="btn-acao" onclick="toggleItem('${key}', ${item.comprado})" style="color: green">✓</button>
+                        <button class="btn-acao" onclick="removerItem('${key}')" style="color: red">X</button>
+                    </div>
+                `;
+                listaDiv.appendChild(div);
             });
             document.getElementById('valor-total-geral').innerText = "R$ " + totalGeral.toFixed(2).replace('.', ',');
-        }
+        });
+
+        // Funções globais para os botões
+        window.toggleItem = (key, statusAtual) => {
+            update(ref(db, 'compras/' + key), { comprado: !statusAtual });
+        };
+
+        window.removerItem = (key) => {
+            if(confirm("Deseja apagar este item?")) {
+                remove(ref(db, 'compras/' + key));
+            }
+        };
+
     </script>
 </body>
 </html>
