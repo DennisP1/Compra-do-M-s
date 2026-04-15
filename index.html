@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Compra - Firebase</title>
+    <title>Minha Compra - Firebase Realtime</title>
     <style>
         * { box-sizing: border-box; }
         
@@ -17,7 +17,7 @@
             margin: 0;
         }
         
-        /* Barra de Adicionar Estilo Recibo */
+        /* Barra de Adicionar Estilo Cupom */
         .controles { 
             background: #fff; 
             width: 100%;
@@ -42,6 +42,7 @@
             font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
             outline: none;
+            width: 100%;
         }
 
         .btn-add { 
@@ -54,6 +55,7 @@
             font-size: 16px;
             font-family: 'Courier New', Courier, monospace;
             letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         /* Estilo da Nota (Recibo) */
@@ -87,10 +89,10 @@
         .tabela-itens { width: 100%; border-collapse: collapse; }
         
         .item-linha { border-bottom: 1px solid #eee; }
-        .item-linha.comprado { color: #aaa; }
+        .item-linha.comprado { color: #aaa; background-color: #fdfdfd; }
         .item-linha.comprado .desc-principal { text-decoration: line-through; }
         
-        .acoes-print { 
+        .acoes-col { 
             display: flex; 
             gap: 8px; 
             padding: 15px 0;
@@ -134,7 +136,7 @@
         .btn-limpar { background: #fff; color: #000; border: 2px solid #000; padding: 15px; font-weight: bold; cursor: pointer; font-family: 'Courier New', Courier, monospace; }
 
         @media print {
-            .controles, .botoes-rodape, .acoes-print { display: none !important; }
+            .controles, .botoes-rodape, .acoes-col { display: none !important; }
             body { background: white; padding: 0; }
             .recibo { width: 100%; box-shadow: none; border: none; max-width: none; }
         }
@@ -186,14 +188,14 @@
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ======================================================
-        // PREENCHA COM SEUS DADOS DO FIREBASE ABAIXO:
+        // COLOQUE SEUS DADOS AQUI:
         const firebaseConfig = {
             apiKey: "SUA_API_KEY",
-            authDomain: "SEU_PROJETO.firebaseapp.com",
-            projectId: "SEU_PROJETO",
-            storageBucket: "SEU_PROJETO.appspot.com",
-            messagingSenderId: "SEU_ID",
-            appId: "SEU_APP_ID"
+            authDomain: "SEU-PROJETO.firebaseapp.com",
+            projectId: "SEU-PROJETO",
+            storageBucket: "SEU-PROJETO.appspot.com",
+            messagingSenderId: "0000000000",
+            appId: "1:0000000000:web:0000000000"
         };
         // ======================================================
 
@@ -203,7 +205,7 @@
 
         document.getElementById('data-exibicao').innerText = new Date().toLocaleDateString('pt-BR');
 
-        // Adicionar Item
+        // Adicionar Item (Exposto globalmente para o HTML)
         window.adicionarItem = async () => {
             const q = document.getElementById('qtd');
             const d = document.getElementById('desc');
@@ -222,7 +224,7 @@
                     timestamp: Date.now()
                 });
                 d.value = ""; v.value = ""; q.value = "1"; d.focus();
-            } catch (err) { alert("Erro ao salvar no Firebase. Verifique as credenciais."); }
+            } catch (err) { alert("Erro de conexão! Verifique se as regras do Firestore foram publicadas."); }
         };
 
         // Escutar mudanças em tempo real
@@ -233,9 +235,10 @@
             renderizar(itens);
         });
 
-        // Toggle Check
+        // Marcar Comprado
         window.toggleCheck = async (id, status) => {
-            await updateDoc(doc(db, "compra_ativa", id), { comprado: !status });
+            const docRef = doc(db, "compra_ativa", id);
+            await updateDoc(docRef, { comprado: !status });
         };
 
         // Remover Item
@@ -245,9 +248,9 @@
             }
         };
 
-        // Limpar Lista Toda
+        // Limpar Tudo
         window.limparLista = async () => {
-            if(confirm("Isso apagará todos os itens da nota. Confirmar?")) {
+            if(confirm("Deseja apagar todos os itens desta nota?")) {
                 const querySnapshot = await getDocs(colRef);
                 const batch = writeBatch(db);
                 querySnapshot.forEach((doc) => batch.delete(doc.ref));
@@ -278,11 +281,11 @@
                     tr.innerHTML = `
                         <td style="padding: 15px 0;">
                             <span class="desc-principal"><strong>${item.qtd}x</strong> ${item.desc}</span><br>
-                            <small>UN: R$ ${item.valorUn.toFixed(2)} | TOTAL: R$ ${subtotal.toFixed(2)}</small>
+                            <small>R$ ${item.valorUn.toFixed(2)} | Sub: R$ ${subtotal.toFixed(2)}</small>
                         </td>
-                        <td class="acoes-print">
-                            <button class="btn-acao btn-check" onclick="toggleCheck('${item.id}', ${item.comprado})">✓</button>
-                            <button class="btn-acao" onclick="remover('${item.id}')" style="color:red">×</button>
+                        <td class="acoes-col">
+                            <button class="btn-acao" onclick="toggleCheck('${item.id}', ${item.comprado})" style="color: green">✓</button>
+                            <button class="btn-acao" onclick="remover('${item.id}')" style="color: red">×</button>
                         </td>
                     `;
                     tabela.appendChild(tr);
