@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pegas Market v2.0.5 - Histórico</title>
+    <title>COMPRA DO MÊS v2.0.5</title>
     <style>
         * { box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
         body { background-color: #e0e0e0; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
@@ -33,7 +33,6 @@
         
         .totais { margin-top: 30px; border-top: 2px dashed #000; padding-top: 15px; font-weight: bold; font-size: 1.4rem; display: flex; justify-content: space-between; }
 
-        /* Estilo Histórico */
         .historico-titulo { text-align: center; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 10px; margin-bottom: 10px; }
         .mes-card { border: 1px solid #ddd; padding: 10px; margin-bottom: 5px; background: #f9f9f9; display: flex; justify-content: space-between; }
 
@@ -63,7 +62,7 @@
 
     <div class="recibo">
         <div class="header">
-            <h2 style="margin: 0; letter-spacing: 2px;">PEGAS - MARKET</h2>
+            <h2 style="margin: 0; letter-spacing: 2px;">COMPRA DO MÊS</h2>
             <small id="data-exibicao"></small>
         </div>
         <div id="corpo-recibo"></div>
@@ -74,15 +73,16 @@
     </div>
 
     <div class="historico-container">
-        <div class="historico-titulo">RESUMO POR MÊS</div>
+        <div class="historico-titulo">HISTÓRICO MENSAL</div>
         <div id="lista-historico"></div>
-        <button class="btn-add" style="background: #555; margin-top: 10px;" onclick="fecharMes()">FECHAR MÊS ATUAL</button>
+        <button class="btn-add" style="background: #555; margin-top: 10px;" onclick="fecharMes()">FECHAR MÊS / LIMPAR ATUAL</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // Substitua pelas suas chaves reais do Firebase
         const firebaseConfig = {
             apiKey: "COLE_AQUI_SUA_API_KEY",
             authDomain: "lista-de-compras-8474e.firebaseapp.com",
@@ -100,7 +100,7 @@
 
         const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         const dataAtual = new Date();
-        const mesAno = `${meses[dataAtual.getMonth()]}/${dataAtual.getFullYear()}`;
+        const mesAno = `${meses[dataAtual.getMonth()]}-${dataAtual.getFullYear()}`;
 
         document.getElementById('data-exibicao').innerText = dataAtual.toLocaleDateString('pt-BR');
 
@@ -112,22 +112,19 @@
 
             if (!d) return alert("Digite o nome do item!");
 
-            const novoItem = {
+            push(listaRef, {
                 desc: d.toUpperCase(),
                 qtd: parseFloat(q) || 1,
                 valor: parseFloat(v) || 0,
                 cat: c,
-                comprado: false,
-                mes: mesAno
-            };
+                comprado: false
+            });
 
-            push(listaRef, novoItem);
             document.getElementById('desc').value = "";
             document.getElementById('valor').value = "";
             document.getElementById('desc').focus();
         };
 
-        // Escuta Lista Atual
         onValue(listaRef, (snapshot) => {
             const corpo = document.getElementById('corpo-recibo');
             corpo.innerHTML = "";
@@ -161,12 +158,9 @@
                 corpo.appendChild(bloco);
             }
             document.getElementById('valor-total-geral').innerText = "R$ " + totalGeral.toFixed(2).replace('.', ',');
-            
-            // Atualiza automaticamente o histórico do mês no banco
-            update(ref(db, 'historico_mensal/' + mesAno.replace('/', '-')), { total: totalGeral });
+            update(ref(db, 'historico_mensal/' + mesAno), { total: totalGeral });
         });
 
-        // Escuta Histórico Mensal
         onValue(histRef, (snapshot) => {
             const histDiv = document.getElementById('lista-historico');
             histDiv.innerHTML = "";
@@ -183,7 +177,7 @@
         window.removerItem = (key) => confirm("Apagar item?") && remove(ref(db, 'compras/' + key));
         
         window.fecharMes = () => {
-            if(confirm("Isso limpará a lista atual para começar um novo mês. O total ficará salvo no histórico. Continuar?")) {
+            if(confirm("Deseja limpar a lista atual? O total acumulado permanecerá no histórico mensal.")) {
                 remove(listaRef);
             }
         };
