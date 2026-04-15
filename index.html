@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pegas - Lista de Compras v2.0.5</title>
+    <title>Pegas Market v2.0.5 - Histórico</title>
     <style>
         * { box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
         body { background-color: #e0e0e0; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
         
-        .controles { 
+        .controles, .historico-container { 
             background: #fff; width: 100%; max-width: 500px; padding: 20px; border: 1px solid #ccc; 
             margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; border-bottom: 5px dashed #ccc; 
         }
@@ -18,27 +18,26 @@
         
         .btn-add { background: #000; color: #fff; border: none; padding: 15px; cursor: pointer; font-weight: bold; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; }
         
-        .recibo { background-color: #fff; width: 100%; max-width: 500px; padding: 25px; border: 1px solid #ccc; box-shadow: 0 0 15px rgba(0,0,0,0.2); min-height: 400px; }
+        .recibo { background-color: #fff; width: 100%; max-width: 500px; padding: 25px; border: 1px solid #ccc; box-shadow: 0 0 15px rgba(0,0,0,0.2); min-height: 400px; margin-bottom: 20px; }
         
         .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 15px; margin-bottom: 15px; }
         
-        /* Estilo dos Blocos de Agrupamento */
         .categoria-bloco { margin-top: 20px; }
-        .categoria-titulo { 
-            background: #000; color: #fff; padding: 5px 10px; font-weight: bold; 
-            font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px;
-        }
+        .categoria-titulo { background: #000; color: #fff; padding: 5px 10px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; }
 
         .item-linha { border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
         .item-linha.comprado { color: #aaa; }
         .item-linha.comprado .texto-item { text-decoration: line-through; }
         
-        .botoes-item { display: flex; gap: 5px; }
         .btn-acao { min-width: 40px; min-height: 40px; border: 1px solid #000; background: #fff; cursor: pointer; font-weight: bold; }
         
         .totais { margin-top: 30px; border-top: 2px dashed #000; padding-top: 15px; font-weight: bold; font-size: 1.4rem; display: flex; justify-content: space-between; }
-        
-        @media print { .controles, .botoes-item { display: none !important; } body { background: #fff; } .recibo { box-shadow: none; border: none; } }
+
+        /* Estilo Histórico */
+        .historico-titulo { text-align: center; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 10px; margin-bottom: 10px; }
+        .mes-card { border: 1px solid #ddd; padding: 10px; margin-bottom: 5px; background: #f9f9f9; display: flex; justify-content: space-between; }
+
+        @media print { .controles, .btn-acao, .historico-container { display: none !important; } }
     </style>
 </head>
 <body>
@@ -67,20 +66,25 @@
             <h2 style="margin: 0; letter-spacing: 2px;">PEGAS - MARKET</h2>
             <small id="data-exibicao"></small>
         </div>
-        <div id="corpo-recibo">
-            </div>
+        <div id="corpo-recibo"></div>
         <div class="totais">
             <span>TOTAL:</span>
             <span id="valor-total-geral">R$ 0,00</span>
         </div>
     </div>
 
+    <div class="historico-container">
+        <div class="historico-titulo">RESUMO POR MÊS</div>
+        <div id="lista-historico"></div>
+        <button class="btn-add" style="background: #555; margin-top: 10px;" onclick="fecharMes()">FECHAR MÊS ATUAL</button>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "COLE_AQUI_SUA_API_KEY", 
+            apiKey: "COLE_AQUI_SUA_API_KEY",
             authDomain: "lista-de-compras-8474e.firebaseapp.com",
             databaseURL: "https://lista-de-compras-8474e-default-rtdb.firebaseio.com",
             projectId: "lista-de-compras-8474e",
@@ -92,8 +96,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const listaRef = ref(db, 'compras');
+        const histRef = ref(db, 'historico_mensal');
 
-        document.getElementById('data-exibicao').innerText = new Date().toLocaleDateString('pt-BR');
+        const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        const dataAtual = new Date();
+        const mesAno = `${meses[dataAtual.getMonth()]}/${dataAtual.getFullYear()}`;
+
+        document.getElementById('data-exibicao').innerText = dataAtual.toLocaleDateString('pt-BR');
 
         window.adicionarItem = function() {
             const d = document.getElementById('desc').value;
@@ -103,27 +112,28 @@
 
             if (!d) return alert("Digite o nome do item!");
 
-            push(listaRef, {
+            const novoItem = {
                 desc: d.toUpperCase(),
                 qtd: parseFloat(q) || 1,
                 valor: parseFloat(v) || 0,
                 cat: c,
                 comprado: false,
-                data: new Date().toISOString()
-            });
+                mes: mesAno
+            };
 
+            push(listaRef, novoItem);
             document.getElementById('desc').value = "";
             document.getElementById('valor').value = "";
             document.getElementById('desc').focus();
         };
 
+        // Escuta Lista Atual
         onValue(listaRef, (snapshot) => {
             const corpo = document.getElementById('corpo-recibo');
             corpo.innerHTML = "";
             let totalGeral = 0;
             let itensPorCategoria = {};
 
-            // Organiza os itens em grupos
             snapshot.forEach((childSnapshot) => {
                 const item = childSnapshot.val();
                 item.key = childSnapshot.key;
@@ -131,37 +141,52 @@
                 itensPorCategoria[item.cat].push(item);
             });
 
-            // Renderiza cada bloco de categoria
             for (let cat in itensPorCategoria) {
                 const bloco = document.createElement('div');
                 bloco.className = 'categoria-bloco';
                 bloco.innerHTML = `<div class="categoria-titulo">${cat}</div>`;
-                
                 itensPorCategoria[cat].forEach(item => {
-                    const subtotal = item.qtd * item.valor;
-                    totalGeral += subtotal;
-
-                    const divItem = document.createElement('div');
-                    divItem.className = `item-linha ${item.comprado ? 'comprado' : ''}`;
-                    divItem.innerHTML = `
-                        <div class="texto-item">
-                            <strong>${item.qtd}x ${item.desc}</strong><br>
-                            <small>R$ ${subtotal.toFixed(2)}</small>
-                        </div>
-                        <div class="botoes-item">
+                    const sub = item.qtd * item.valor;
+                    totalGeral += sub;
+                    const div = document.createElement('div');
+                    div.className = `item-linha ${item.comprado ? 'comprado' : ''}`;
+                    div.innerHTML = `
+                        <div class="texto-item"><strong>${item.qtd}x ${item.desc}</strong><br><small>R$ ${sub.toFixed(2)}</small></div>
+                        <div style="display:flex; gap:5px;">
                             <button class="btn-acao" onclick="toggleItem('${item.key}', ${item.comprado})">✓</button>
                             <button class="btn-acao" onclick="removerItem('${item.key}')" style="color:red">X</button>
-                        </div>
-                    `;
-                    bloco.appendChild(divItem);
+                        </div>`;
+                    bloco.appendChild(div);
                 });
                 corpo.appendChild(bloco);
             }
             document.getElementById('valor-total-geral').innerText = "R$ " + totalGeral.toFixed(2).replace('.', ',');
+            
+            // Atualiza automaticamente o histórico do mês no banco
+            update(ref(db, 'historico_mensal/' + mesAno.replace('/', '-')), { total: totalGeral });
+        });
+
+        // Escuta Histórico Mensal
+        onValue(histRef, (snapshot) => {
+            const histDiv = document.getElementById('lista-historico');
+            histDiv.innerHTML = "";
+            snapshot.forEach((child) => {
+                const mesData = child.val();
+                const div = document.createElement('div');
+                div.className = 'mes-card';
+                div.innerHTML = `<span>${child.key.replace('-', '/')}</span> <strong>R$ ${mesData.total.toFixed(2)}</strong>`;
+                histDiv.appendChild(div);
+            });
         });
 
         window.toggleItem = (key, status) => update(ref(db, 'compras/' + key), { comprado: !status });
         window.removerItem = (key) => confirm("Apagar item?") && remove(ref(db, 'compras/' + key));
+        
+        window.fecharMes = () => {
+            if(confirm("Isso limpará a lista atual para começar um novo mês. O total ficará salvo no histórico. Continuar?")) {
+                remove(listaRef);
+            }
+        };
 
     </script>
 </body>
