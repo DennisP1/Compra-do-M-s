@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Compra - Firebase Realtime</title>
+    <title>Minha Compra - Pegas v2.0.5</title>
     <style>
         * { box-sizing: border-box; }
         
@@ -165,7 +165,7 @@
 
     <div class="recibo">
         <div class="header">
-            <h2 style="margin: 0; letter-spacing: 4px;">CUPOM DE COMPRAS</h2>
+            <h2 style="margin: 0; letter-spacing: 4px;">PEGAS - CUPOM</h2>
             <small id="data-exibicao"></small>
         </div>
 
@@ -187,17 +187,20 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDocs, writeBatch } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ======================================================
-        // COLOQUE SEUS DADOS AQUI:
+        // ATENÇÃO: SUBSTITUA OS VALORES ABAIXO PELOS SEUS DO FIREBASE
         const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "SEU-PROJETO.firebaseapp.com",
-            projectId: "SEU-PROJETO",
-            storageBucket: "SEU-PROJETO.appspot.com",
-            messagingSenderId: "0000000000",
-            appId: "1:0000000000:web:0000000000"
+            apiKey: "SUA_API_KEY_AQUI",
+            authDomain: "seu-projeto.firebaseapp.com",
+            projectId: "seu-projeto-id",
+            storageBucket: "seu-projeto.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcde12345"
         };
-        // ======================================================
+
+        // Verifica se o usuário esqueceu de trocar as chaves
+        if (firebaseConfig.projectId.includes("seu-projeto")) {
+            alert("ERRO: Você precisa colar suas chaves do Firebase no código (firebaseConfig)!");
+        }
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -205,7 +208,6 @@
 
         document.getElementById('data-exibicao').innerText = new Date().toLocaleDateString('pt-BR');
 
-        // Adicionar Item (Exposto globalmente para o HTML)
         window.adicionarItem = async () => {
             const q = document.getElementById('qtd');
             const d = document.getElementById('desc');
@@ -224,10 +226,12 @@
                     timestamp: Date.now()
                 });
                 d.value = ""; v.value = ""; q.value = "1"; d.focus();
-            } catch (err) { alert("Erro de conexão! Verifique se as regras do Firestore foram publicadas."); }
+            } catch (err) { 
+                console.error(err);
+                alert("Erro ao salvar! Verifique se as REGRAS do Cloud Firestore estão como 'true'.");
+            }
         };
 
-        // Escutar mudanças em tempo real
         const qSnapshot = query(colRef, orderBy("timestamp", "asc"));
         onSnapshot(qSnapshot, (snapshot) => {
             let itens = [];
@@ -235,20 +239,16 @@
             renderizar(itens);
         });
 
-        // Marcar Comprado
         window.toggleCheck = async (id, status) => {
-            const docRef = doc(db, "compra_ativa", id);
-            await updateDoc(docRef, { comprado: !status });
+            await updateDoc(doc(db, "compra_ativa", id), { comprado: !status });
         };
 
-        // Remover Item
         window.remover = async (id) => {
             if(confirm("Remover este item?")) {
                 await deleteDoc(doc(db, "compra_ativa", id));
             }
         };
 
-        // Limpar Tudo
         window.limparLista = async () => {
             if(confirm("Deseja apagar todos os itens desta nota?")) {
                 const querySnapshot = await getDocs(colRef);
@@ -258,12 +258,10 @@
             }
         };
 
-        // Renderização Visual
         function renderizar(dados) {
             const container = document.getElementById('lista-agrupada');
             container.innerHTML = "";
             let totalGeral = 0;
-
             const categorias = [...new Set(dados.map(i => i.cat))];
             
             categorias.forEach(cat => {
